@@ -18,7 +18,7 @@ function convertTableToObject(tablePosition, propertyNames) {
   rows.forEach(function(row) {
     const cellNumber = row.querySelectorAll('td').length;
     if (cellNumber !== propertyNames.length) {
-      throw new PropertyException('Number of properties\' name does not match with number of cells in a table\' row');
+      throw new PropertyException('Number of properties\' name does not match with number of cells in a row');
     }
     const obj = {};
     for (let i = 1; i <= propertyNames.length; i++) {
@@ -27,7 +27,7 @@ function convertTableToObject(tablePosition, propertyNames) {
     }
     data.push(obj);
   })
-  return data === [] ? 'erreur' : data;
+  return data;
 }
 
 getDocument('https://raw.githubusercontent.com/coopTilleuls/.github/main/profile/revenues/README.md')
