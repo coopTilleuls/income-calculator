@@ -1,57 +1,33 @@
-async function getDocument(url) {
+(async function() {
     try {
-        return (await fetch(url)).text();
-    } catch (err) {
-        console.error(err);
+        const md = new markdownit();
+        const parser = new DOMParser();
+        const mdFile = (await (await fetch('https://raw.githubusercontent.com/coopTilleuls/.github/main/profile/revenues/README.md')).text());
+        const documentParsed = parser.parseFromString(md.render(mdFile), 'text/html');
+        
+        const table1Selector = 'table:nth-of-type(1) tbody tr';
+        const table2Selector = 'table:nth-of-type(2) tbody tr';
+        
+        function convertTableToObject(document, tableSelector, propertyNames) {
+            const rows = document.querySelectorAll(tableSelector);
+            const rowsArr = Array.from(rows);
+            return rowsArr.map((row) => {
+                const firstProperty = row.querySelector('td:nth-child(1)').textContent;
+                const secondProperty = row.querySelector('td:nth-child(2)').textContent;
+                const obj = {
+                    [propertyNames[0]]: firstProperty,
+                    [propertyNames[1]]: secondProperty,
+                };
+                return obj; 
+            })
+        }
+
+        const salaries = convertTableToObject(documentParsed, table1Selector, ['title', 'salary']);
+        const bonuses = convertTableToObject(documentParsed, table2Selector, ['year', 'amount']);
+
+        console.log(salaries);
+        console.log(bonuses);
+    } catch(e) {
+        console.error(e);
     }
-}
-
-class PropertyException extends Error {
-  constructor() {
-    super('Number of properties\' name does not match with number of cells in a row');
-  }
-}
-
-function convertTableToObject(tablePosition, propertyNames) {
-  const CSSselector = `table:nth-of-type(${tablePosition.toString()}) tbody tr`;
-  const rows = document.querySelectorAll(CSSselector);
-  const data = [];
-  rows.forEach(function(row) {
-    const cellNumber = row.querySelectorAll('td').length;
-    if (cellNumber !== propertyNames.length) {
-      throw new PropertyException('Number of properties\' name does not match with number of cells in a row');
-    }
-    const obj = {};
-    for (let i = 1; i <= propertyNames.length; i++) {
-      let cell = row.querySelector(`td:nth-child(${i.toString()})`);
-      if (cell) obj[propertyNames[i - 1]] = cell.textContent;
-    }
-    data.push(obj);
-  })
-  return data;
-}
-
-getDocument('https://raw.githubusercontent.com/coopTilleuls/.github/main/profile/revenues/README.md')
-.then(function (mdFile) {
-    const md = new markdownit();
-    const html = md.render(mdFile);
-    console.log(html);
-    const parser = new DOMParser();
-    const parsedHTML = parser.parseFromString(mdFile, 'text/html');
-    console.log(parsedHTML);
-    document.body.insertAdjacentHTML('afterbegin', html);
-    try {
-        salaryData = convertTableToObject(1, ['title', 'salary']);
-      } catch(e) {
-        console.error(e.name, e.message);
-      }
-    bonusData = convertTableToObject(2, ['year', 'amount']);
-
-    console.log(salaryData);
-    console.log(bonusData);
-});
-
-
-
-
-
+})();
